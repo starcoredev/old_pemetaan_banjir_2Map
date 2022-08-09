@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testing Data Banjir</title>
+
+    <!-- Leaflet css -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ==" crossorigin="" />
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: rgb(0, 157, 255);
+        }
+
+        .row{
+            display: flex;
+        }
+        
+        .cols {
+            flex:50%;
+            height: 100vh;
+        }
+
+        #map1 {
+            /* border-right: 5px solid red; */
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- <h1 id="ket"></h1> -->
+    <div class="top">TOP</div>
+
+    <div class="row">
+        <!-- <h3>Peta Data DKI Jakarta</h3> -->
+        <div class="cols" id='map1'>test</div>
+        <!-- <h3>Peta Banjir DKI Jakarta Flood5555</h3> -->
+        <div class="cols" id="map2"></div>
+    </div>
+
+    <div class="bottom">BOTTOM</div>
+</body>
+</html>
+
+
+<!-- Leaflet js -->
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ==" crossorigin=""></script>
+<script src="./data/flood5555.js"></script>
+<script src="./data/rw_provinsi.js"></script> 
+<script src="./data/Waduk_DKI_Jakarta.js"></script>
+<script src="./data/Rumah_Pompa_IoT.js"></script> 
+<script src="./package/papaparse.js"></script>
+
+<script>
+    var ket = document.getElementById('ket');
+    // Map initialization
+    var map1 = L.map('map1').setView([-6.200000, 106.816666], 10);
+
+    // osm layer
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 16
+    });
+    osm.addTo(map1)
+
+    /*======================================================
+                        TITLE LAYER
+    ======================================================*/
+    var Stamen_Watercolor = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
+        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abcd',
+        minZoom: 1,
+        maxZoom: 16,
+        ext: 'jpg'
+    });
+    // Stamen_Watercolor.addTo(map)
+
+    // Google Map Street
+    googleStreets = L.tileLayer('http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3']
+    });
+    // googleStreets.addTo(map)
+
+    /*======================================================
+                        MARKER
+    ======================================================*/
+    // var myIcon = L.icon({
+    //     iconUrl: 'img/marker2.png',
+    //     iconSize: [60, 60],
+    // });
+
+    // var firstMarker = L.marker([0.7893, 113.9213], { icon: myIcon, draggable: true }).addTo(map1);
+    // var popup = firstMarker.bindPopup("Indonesia. " + firstMarker.getLatLng()).openPopup()
+    // popup.addTo(map1)
+
+    // var secondMarker = L.marker([0.7993, 123.9213], { icon: myIcon, draggable: true }).addTo(map1);
+
+    // console.log(firstMarker.toGeoJSON())
+
+    /*======================================================
+                    GEOJSON / LAYER
+    ======================================================*/
+    var flood5555 = L.geoJSON(flood5555JSON, {
+        onEachFeature: function(feature, layer) {
+            layer.bindPopup("Grid ID: " + feature.properties.GID + " Floodval: " + feature.properties.Floodval)
+        },
+        style: {
+            fillColor: 'red',
+            // fillOpacity: 1,
+            color: 'orange'
+        }
+    })
+
+    
+    // var sungai = L.geoJSON(sungaiJSON, {
+    //     onEachFeature: function(feature, layer) {
+    //         layer.bindPopup("Nama: " + feature.properties.toponimi + " Kondisi: " + feature.properties.kondisi)
+    //     }
+    // }).addTo(map)
+    var waduk = L.geoJSON(wadukJSON, {
+        onEachFeature: function(feature, layer) {
+            layer.bindPopup(feature.properties.nama_waduk + " <img width='150px' src='waduk.jpg'>")
+        },
+        style: {
+            fillColor: 'white',
+            color: 'green'
+        }
+    }).addTo(map1)
+
+    // LAYER RUMAH POMPA 
+    var rumahPompaIOT = L.geoJSON(rumahPompaIoT_JSON, {
+        onEachFeature: function(feature, layer) {
+            var markers = new L.FeatureGroup().addTo(map1);
+            // layer.bindPopup(feature.properties.nama_rumah_pompa + feature.properties.image).addTo(map)
+            var rumahPompaMarker = L.icon({
+                iconUrl: 'https://drive.google.com/uc?id=1mHEzCPjPfl7-MzhTZMIkO2Ky9_Cxn1QP',
+                iconSize: [25, 25],
+            });
+            var pompaMarker = L.marker([feature.properties.Latitude, feature.properties.Longitude], { icon: rumahPompaMarker });
+            var popup = pompaMarker.bindPopup("Nama Rumah Pompa " + feature.properties.nama_rumah_pompa + feature.properties.image).addTo(markers);
+
+            // layer.bindPopup(feature.properties.nama_rumah_pompa + " <img width='150px' src='rumah1.jpg'>")
+        }
+    }).addTo(map1)
+
+    var prevLayerClicked = null;
+    var rw_provinsi = L.geoJSON(rw_provinsiJSON, {
+        // filter: picnicFilter,
+        // onEachFeature: function(feature, layer) {
+        //     // layer.bindPopup(feature.properties.nama_rumah_pompa + " <img width='150px' src='rumah1.jpg'>")
+        //     // layer.bindPopup(feature.properties.properties);
+
+        // }
+
+        style: {
+            fillColor: 'blue',
+            fillOpacity: 0.1,
+            color: '#9229c7'
+        },
+
+        onEachFeature: function (feature, layer) {
+            layer.on({
+                click: function(e){
+                if (prevLayerClicked !== null) {
+                    // Reset style
+                    prevLayerClicked.setStyle({
+                    weight: 2,
+                    opacity: 1,
+                    color: 'white',
+                    dashArray: '',
+                    fillOpacity: 0.1,
+                    fillColor: 'blue'
+                    });
+                }
+                map1.fitBounds(e.target.getBounds());
+                var layer = e.target;
+                layer.setStyle({
+                    weight: 1,
+                    color: '#fff',
+                    dashArray: '',
+                    fillOpacity: 0.5,
+                    fillColor: 'black'
+                });
+                if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                    layer.bringToFront();
+                }
+
+                Papa.parse("data/prediksi pergrid.csv", {
+                    download: true,
+                    header: false,
+                    complete: function(results) {
+                        const test = results.data;
+                        for (i=1;i<test.length; i++){
+                            if(test[i][15] == e.target.feature.properties.id_rw){
+                                function resolveAfter3Seconds() {
+                                    return new Promise(resolve => {
+                                        setTimeout(() => {
+                                        resolve("id rw 2: " + test[i][15] + "<br>" + "cat banjir max: " + test[i][14] + "<br>" +  "flood max: " + test[i][13] + "<br>" +  "flood avg: " + test[i][3] + "<br>" + "kel name: " + test[i][8] + "<br>" );
+                                        }, 3000);
+                                    });
+                                }
+
+                                async function asyncCall() {
+                                    ket.innerHTML = "loading 3 second";
+                                    const givestatement = await resolveAfter3Seconds();
+                                    ket.innerHTML = givestatement;
+                                }
+                                
+                                asyncCall();
+                                break;
+                            }else{
+                                ket.innerHTML = "id rw 2: " + e.target.feature.properties.id_rw + " tidak ditemukan";
+                                break;
+                            }
+                        }
+                    }
+                });
+                
+                prevLayerClicked = layer;
+                }
+            });
+        }
+    })
+
+    map1.on('zoomend', function() {
+        var zoomlevel = map1.getZoom();
+        if (zoomlevel  <12){
+            if (map1.hasLayer(rw_provinsi)) {
+                map1.removeLayer(rw_provinsi);
+            } else {
+                // console.log("no point layer active");
+            }
+        }
+        if (zoomlevel >= 12){
+            if (map1.hasLayer(rw_provinsi)){
+                // console.log("layer already added");
+            } else {
+                map1.addLayer(rw_provinsi);
+            }
+        }
+    });
+
+    /*======================================================
+                        LAYER CONTROL
+    ======================================================*/
+    var baseMaps = {
+        "osm": osm,
+        "Stamen Watercolor": Stamen_Watercolor,
+        "google Streets": googleStreets,
+    };
+
+    var overlayMaps = {
+        "<img width='15px' src=https://drive.google.com/uc?id=18dFyKSUHB_pYRqU-Za9bpkETAHQURqGl> Data Banjir DKI Jakarta": flood5555,
+        "Data rw provinsi": rw_provinsi,
+        "<img width='15px' src=https://drive.google.com/uc?id=1vG7DVnVDEGtXzgW3YdpkyZEJGjF38ZSP> Data Waduk DKI Jakarta": waduk,
+        "<img width='15px' src=https://drive.google.com/uc?id=1mHEzCPjPfl7-MzhTZMIkO2Ky9_Cxn1QP> Data Rumah Pompa DKI Jakarta": rumahPompaIOT,
+    };
+
+
+    L.control.layers(baseMaps, overlayMaps, { collapsed: false}).addTo(map1)
+</script>
+
+<!-- MAP 2 -->
+<script>
+    var map2 = L.map('map2').setView([-6.200000, 106.816666], 10);
+
+    // osm layer
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 16
+    });
+    osm.addTo(map2)
+
+    /*======================================================
+                        TITLE LAYER
+    ======================================================*/
+    var Stamen_Watercolor = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
+        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        subdomains: 'abcd',
+        minZoom: 1,
+        maxZoom: 16,
+        ext: 'jpg' 
+    });
+    // Stamen_Watercolor.addTo(map2)
+
+    // Google Map Street
+    googleStreets = L.tileLayer('http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}',{
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3']
+    });
+    // googleStreets.addTo(map2)
+
+    /*======================================================
+                        GEOJSON Layer
+    ======================================================*/
+    var flood5555 = L.geoJSON(flood5555JSON, {
+        onEachFeature: function(feature, layer) {
+            layer.bindPopup("Grid ID: " + feature.properties.GID + " Floodval: " + feature.properties.Floodval)
+        },
+        style: {
+            fillColor: 'red',
+            // fillOpacity: 1,
+            color: 'orange'
+        }
+    })
+
+    var baseMaps = {
+        "osm": osm,
+        "Stamen Watercolor": Stamen_Watercolor,
+        "google Streets": googleStreets,
+    };
+    
+    var overlayMaps = {
+        "<img width='15px' src=https://drive.google.com/uc?id=18dFyKSUHB_pYRqU-Za9bpkETAHQURqGl> Data Banjir DKI Jakarta": flood5555,
+        // "<img width='15px' src=https://drive.google.com/uc?id=1vG7DVnVDEGtXzgW3YdpkyZEJGjF38ZSP> Data Waduk DKI Jakarta": waduk,
+        // "<img width='15px' src=https://drive.google.com/uc?id=1mHEzCPjPfl7-MzhTZMIkO2Ky9_Cxn1QP> Data Rumah Pompa DKI Jakarta": rumahPompaIOT,
+    };
+
+    L.control.layers(baseMaps, overlayMaps, { collapsed: false}).addTo(map2)
+</script>
