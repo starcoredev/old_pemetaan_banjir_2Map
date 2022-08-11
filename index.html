@@ -33,7 +33,9 @@
 </head>
 <body>
     <!-- <h1 id="ket"></h1> -->
-    <div class="top">TOP</div>
+    <div class="top">
+        <h1 id="ket"></h1>
+    </div>
 
     <div class="row">
         <!-- <h3>Peta Data DKI Jakarta</h3> -->
@@ -52,6 +54,7 @@
 <script src="./data/flood5555.js"></script>
 <script src="./data/rw_provinsi.js"></script> 
 <script src="./data/Waduk_DKI_Jakarta.js"></script>
+<script src="./data/Rumah_Pompa.js"></script> 
 <script src="./data/Rumah_Pompa_IoT.js"></script> 
 <script src="./package/papaparse.js"></script>
 
@@ -133,20 +136,18 @@
     }).addTo(map1)
 
     // LAYER RUMAH POMPA 
-    var rumahPompaIOT = L.geoJSON(rumahPompaIoT_JSON, {
-        onEachFeature: function(feature, layer) {
-            var markers = new L.FeatureGroup().addTo(map1);
-            // layer.bindPopup(feature.properties.nama_rumah_pompa + feature.properties.image).addTo(map)
-            var rumahPompaMarker = L.icon({
+    var rumahPompaMarker = L.icon({
                 iconUrl: 'https://drive.google.com/uc?id=1mHEzCPjPfl7-MzhTZMIkO2Ky9_Cxn1QP',
                 iconSize: [25, 25],
             });
+    var rumahPompaIOT = L.geoJSON(pompaJSON, {
+        pointToLayer: function(feature, layer) {
+            // return markers = new L.FeatureGroup().addTo(map1);
+                    
             var pompaMarker = L.marker([feature.properties.Latitude, feature.properties.Longitude], { icon: rumahPompaMarker });
-            var popup = pompaMarker.bindPopup("Nama Rumah Pompa " + feature.properties.nama_rumah_pompa + feature.properties.image).addTo(markers);
-
-            // layer.bindPopup(feature.properties.nama_rumah_pompa + " <img width='150px' src='rumah1.jpg'>")
+            return popup = pompaMarker.bindPopup( "Nama Rumah Pompa" + feature.properties.nama_rumah_pompa + feature.properties.image).addTo(map1);
         }
-    }).addTo(map1)
+    })
 
     var prevLayerClicked = null;
     var rw_provinsi = L.geoJSON(rw_provinsiJSON, {
@@ -190,7 +191,7 @@
                     layer.bringToFront();
                 }
 
-                Papa.parse("data/prediksi pergrid.csv", {
+                Papa.parse("data/prediksi_pergrid.csv", {
                     download: true,
                     header: false,
                     complete: function(results) {
@@ -200,7 +201,7 @@
                                 function resolveAfter3Seconds() {
                                     return new Promise(resolve => {
                                         setTimeout(() => {
-                                        resolve("id rw 2: " + test[i][15] + "<br>" + "cat banjir max: " + test[i][14] + "<br>" +  "flood max: " + test[i][13] + "<br>" +  "flood avg: " + test[i][3] + "<br>" + "kel name: " + test[i][8] + "<br>" );
+                                        resolve("id rw 2: " + test[i][15] + "<br>" + "cat banjir max: " + test[i][14] + "<br>" +  "flood max: " + test[i][13] + "<br>" +  "flood avg: " + test[i][3] + "<br>" + "kel name: " + test[i][8] + "<br>" + "Tanggal: " + test[i][2]);
                                         }, 3000);
                                     });
                                 }
@@ -212,9 +213,6 @@
                                 }
                                 
                                 asyncCall();
-                                break;
-                            }else{
-                                ket.innerHTML = "id rw 2: " + e.target.feature.properties.id_rw + " tidak ditemukan";
                                 break;
                             }
                         }
